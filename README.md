@@ -1,2 +1,2 @@
 # Apache maid
-Apache 2 virtualhost helper
+The Apache 2 virtualhost helper
