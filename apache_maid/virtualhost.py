@@ -1,13 +1,11 @@
 
 
 class VirtualHost:
+
     _document_root = ''
     _server_name = ''
     _server_alias = []
     _port = 80
-    _is_ssl = False
-    _ssl_crt_path = ''
-    _ssl_key_path = ''
 
     def __init__(self, name):
         self._server_name = name
@@ -34,12 +32,6 @@ class VirtualHost:
     def set_server_name(self, server_name):
         self._server_name = server_name
 
-    def set_is_ssl(self, is_ssl):
-        self._is_ssl = is_ssl
-
-    def is_ssl(self):
-        return self._is_ssl
-
     def set_port(self, port):
         self._port = port
 
@@ -58,3 +50,23 @@ class VirtualHost:
     def remove(self):
         self.disable()
         # TODO remove config file
+
+
+class SSLVirtualHost(VirtualHost):
+
+    _ssl_crt_path = ''
+    _ssl_key_path = ''
+    _port = 443
+
+    def get_ssl_crt(self):
+        return self._ssl_crt_path
+
+    def set_ssl_crt(self, ssl_crt_path):
+        self._ssl_crt_path = ssl_crt_path
+
+    def get_ssl_key(self):
+        return self._ssl_key_path
+
+    def set_ssl_key(self, ssl_key_path):
+        self._ssl_key_path = ssl_key_path
+
