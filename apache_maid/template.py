@@ -1,5 +1,4 @@
 import os.path
-import re
 
 
 class Template:
@@ -45,33 +44,3 @@ class Template:
 
     def get_content(self):
         return self._content
-
-
-class VirtualHostReader:
-
-    _sites_available_path = ''
-    _template = None
-
-    def __init__(self, sites_available_path):
-        self._sites_available_path = sites_available_path
-        self._filename_regex = re.compile(r'(ssl_)?([a-zA-Z.\-_]+)_([0-9]*)\.conf')
-
-    def _get_virtual_host(self):
-        content = self._template.get_content()
-
-        for content_line in content:
-            pass  # TODO read virtualhost conf file content
-
-    def read(self, virtualhost):
-        files = os.scandir(path=self._sites_available_path)
-
-        for file in files:
-            if file.is_file() and self._filename_regex.match(file.name):
-                matches = self._filename_regex.findall(file.name)
-
-                if matches[1] == virtualhost:
-                    self._template = Template(file.name, self._sites_available_path)
-                    self._template.load()
-
-
-
