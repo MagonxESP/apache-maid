@@ -11,6 +11,16 @@ class Template:
         self._name = name
         self._path = dir_path
 
+    def load_empty(self, is_ssl=False):
+        if is_ssl:
+            template = 'default-ssl.conf'
+        else:
+            template = 'default.conf'
+
+        with open('templates/' + template, 'r') as file:
+            for i, line in enumerate(file):
+                self._content.append(line)
+
     def load(self):
         file_path = self._path + '/' + self._name
 

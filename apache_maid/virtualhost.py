@@ -11,6 +11,7 @@ class VirtualHost:
     _server_name = ''
     _server_alias = []
     _port = 80
+    _is_ssl = False
 
     def __init__(self, name):
         self._server_name = name
@@ -62,6 +63,7 @@ class VirtualHost:
 
 class SSLVirtualHost(VirtualHost):
 
+    _is_ssl = True
     _ssl_crt_path = ''
     _ssl_key_path = ''
     _port = 443
@@ -91,13 +93,14 @@ class VirtualHostReader:
     def _parse_line(self, line, data):
         for variable in VIRTUALHOST_VARIABLES:
             if variable['type'] == 'list':
-                parser = apache_maid.parser.RegexListParser(variable['regex'], line, variable['type'])
+                value = apache_maid.parser.RegexListParser(variable['regex'], line).parse()
             elif variable['type'] == 'bool':
-                parser = apache_maid.parser.RegexBoolParser(variable['regex'], line, variable['type'])
+                value = apache_maid.parser.RegexBoolParser(variable['regex'], line).parse()
             else:
-                parser = apache_maid.parser.RegexParser(variable['regex'], line, variable['type'])
+                value = apache_maid.parser.RegexParser(variable['regex'], line).parse()
 
-            value = parser.parse()
+                if value:
+                    value = value.pop()
 
             if value:
                 data[variable['variable']] = value
@@ -122,7 +125,7 @@ class VirtualHostReader:
 
         return virtualhost
 
-    def read(self, virtualhost):
+    def read_by_name(self, virtualhost):
         files = os.scandir(path=self._sites_available_path)
 
         for file in files:
@@ -130,6 +133,45 @@ class VirtualHostReader:
                 matches = self._filename_regex.findall(file.name)
 
                 if matches[1] == virtualhost:
-                    self._template = Template(file.name, self._sites_available_path)
-                    self._template.load()
-                    return self._get_virtual_host()
+                    return self.read(file.name)
+
+    def read(self, virtualhost_file_name):
+        self._template = Template(virtualhost_file_name, self._sites_available_path)
+        self._template.load()
+        return self._get_virtual_host()
+
+    def get_available(self):
+        files = os.scandir(path=self._sites_available_path)
+        virtualhosts = []
+
+        for file in files:
+            if file.is_file():
+                virtualhosts.append(self.read(file.name))
+
+        return virtualhosts
+
+
+class VirtualHostWritter:
+
+    _reader = None
+    _sites_available_path = ''
+
+    def __init__(self, sites_available_path):
+        self._sites_available_path = sites_available_path
+        self._reader = VirtualHostReader(sites_available_path)
+
+    def _write_line(self, template_line):
+        pass
+
+    def write(self, virtualhost):
+        template = Template(virtualhost.get_server_name(), self._sites_available_path)
+
+        if isinstance(virtualhost, SSLVirtualHost):
+            template.load_empty(True)
+        else:
+            template.load_empty()
+
+        content = template.get_content()
+
+        for i,value in content:
+            pass

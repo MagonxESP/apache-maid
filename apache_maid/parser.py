@@ -5,29 +5,24 @@ class RegexParser:
 
     _regex = ''
     _string = ''
-    _type = ''
 
-    def __init__(self, regex, string, _type):
+    def __init__(self, regex, string):
         self._regex = regex
         self._string = string
-        self._type = _type
 
     def _get_matches(self):
         test = re.compile(self._regex)
-
-        if test.match(self._string):
-            return test.findall(self._string)
-        else:
-            return None
+        return test.findall(self._string)
 
     def parse(self):
+        matches = self._get_matches()
         values = []
 
-        for match in self._get_matches():
-            if self._type == 'int':
-                values.append(int(match))
+        for match in matches:
+            if type(match) is str:
+                values.append(str(match).strip('\t\n '))
             else:
-                values.append(str(match))
+                values.append(match)
 
         return values
 
@@ -36,7 +31,11 @@ class RegexListParser(RegexParser):
 
     def parse(self):
         values = self._get_matches()
-        return str(values[0]).split(' ')
+
+        if values:
+            return str(values.pop()).split(' ')
+        else:
+            return []
 
 
 class RegexBoolParser(RegexParser):
