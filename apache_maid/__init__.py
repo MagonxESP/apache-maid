@@ -1,3 +1,13 @@
+import apache_maid.settings
+
+# Required configuration
+conf = apache_maid.settings.Settings()
+
+if conf.exits() is False:
+    conf = apache_maid.settings.configure()
+
+conf.load()
+
 # Virtualhost parseable variables
 # By default the virtual host reader parser get the last group value of the regex by default
 VIRTUALHOST_VARIABLES = [

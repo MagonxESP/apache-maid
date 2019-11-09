@@ -1,51 +1,43 @@
 import re
 from apache_maid.template import Template
 import os
-from apache_maid import VIRTUALHOST_STRUCT, VIRTUALHOST_VARIABLES
+from apache_maid import VIRTUALHOST_STRUCT, VIRTUALHOST_VARIABLES, conf
 import apache_maid.parser
 
 
 class VirtualHost:
 
-    _document_root = ''
-    _server_name = ''
-    _server_alias = []
-    _port = 80
-    _is_ssl = False
+    document_root = ''
+    server_name = ''
+    server_alias = []
+    port = 80
+    file_path = ''
+    _enabled_link_path = ''
 
     def __init__(self, name):
-        self._server_name = name
-
-    def get_server_name(self):
-        return self._server_name
-
-    def get_document_root(self):
-        return self._document_root
-
-    def get_server_alias(self):
-        return self._server_alias
-
-    def set_document_root(self, document_root):
-        self._document_root = document_root
+        self.server_name = name
 
     def add_server_alias(self, alias):
-        if alias not in self._server_alias:
-            self._server_alias.append(alias)
+        if alias not in self.server_alias:
+            self.server_alias.append(alias)
 
     def remove_server_alias(self, alias):
-        self._server_alias.remove(alias)
+        self.server_alias.remove(alias)
 
-    def set_server_alias(self, server_alias_list):
-        self._server_alias = server_alias_list
+    def is_enabled(self):
+        sites_enabled_path = conf.get('sites_enabled')
+        links = os.scandir(sites_enabled_path)
 
-    def set_server_name(self, server_name):
-        self._server_name = server_name
+        for link in links:
+            if os.path.islink(link.path):
+                link_origin_filename = os.path.basename(os.readlink(link.path))
+                file_name = os.path.basename(self.file_path)
 
-    def set_port(self, port):
-        self._port = port
+                if link_origin_filename == file_name:
+                    self._enabled_link_path = os.path.join(sites_enabled_path, link.name)
+                    return True
 
-    def get_port(self):
-        return self._port
+        return False
 
     def save(self):
         pass
@@ -63,22 +55,9 @@ class VirtualHost:
 
 class SSLVirtualHost(VirtualHost):
 
-    _is_ssl = True
-    _ssl_crt_path = ''
-    _ssl_key_path = ''
-    _port = 443
-
-    def get_ssl_crt(self):
-        return self._ssl_crt_path
-
-    def set_ssl_crt(self, ssl_crt_path):
-        self._ssl_crt_path = ssl_crt_path
-
-    def get_ssl_key(self):
-        return self._ssl_key_path
-
-    def set_ssl_key(self, ssl_key_path):
-        self._ssl_key_path = ssl_key_path
+    ssl_crt_path = ''
+    ssl_key_path = ''
+    port = 443
 
 
 class VirtualHostReader:
@@ -114,14 +93,15 @@ class VirtualHostReader:
 
         if virtualhost_data['is_ssl']:
             virtualhost = SSLVirtualHost(virtualhost_data['server_name'])
-            virtualhost.set_ssl_crt(virtualhost_data['ssl_crt_path'])
-            virtualhost.set_ssl_key(virtualhost_data['ssl_key_path'])
+            virtualhost.ssl_crt_path = virtualhost_data['ssl_crt_path']
+            virtualhost.ssl_key_path = virtualhost_data['ssl_key_path']
         else:
             virtualhost = VirtualHost(virtualhost_data['server_name'])
 
-        virtualhost.set_document_root(virtualhost_data['document_root'])
-        virtualhost.set_port(virtualhost_data['port'])
-        virtualhost.set_server_alias(virtualhost_data['server_alias'])
+        virtualhost.document_root = virtualhost_data['document_root']
+        virtualhost.port = virtualhost_data['port']
+        virtualhost.server_alias = virtualhost_data['server_alias']
+        virtualhost.file_path = self._template.get_full_path()
 
         return virtualhost
 

@@ -38,6 +38,9 @@ class Template:
         except IOError as e:
             print(e)
 
+    def get_full_path(self):
+        return self._path + '/' + self._name
+
     def get_line(self, index):
         content_lenght = len(self._content)
 

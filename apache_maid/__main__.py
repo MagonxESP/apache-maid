@@ -1,13 +1,6 @@
 import argparse
-import apache_maid.settings
 import apache_maid.functions
-
-settings = apache_maid.settings.Settings()
-
-if settings.exits() is False:
-    settings = apache_maid.settings.configure()
-
-settings.load()
+import apache_maid
 
 parser = argparse.ArgumentParser(prog='apache-maid', description='Apache virtualhost manager')
 parser.add_argument('option', type=str, help='See --options')
@@ -22,7 +15,7 @@ elif args.option == 'create':
 elif args.option == 'disable':
     pass
 elif args.option in ['list', 'ls']:
-    apache_maid.functions.list_virtual_hosts(settings.get('sites_available'), settings.get('sites_enabled'))
+    apache_maid.functions.list_virtual_hosts(apache_maid.conf.get('sites_available'))
 elif args.option == 'remove':
     pass
 elif args.option == 'enable':
