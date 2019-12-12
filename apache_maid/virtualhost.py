@@ -168,6 +168,8 @@ class Directive(VirtualHostElement):
     value = None
 
     """
+    Directive constructor
+    
     :param str name: The directive name
     :param str value: The directive value
     """
@@ -303,7 +305,6 @@ class Section(VirtualHostElement):
 
 
 class VirtualHostDocument:
-
     root_section = None
 
     """
@@ -314,3 +315,78 @@ class VirtualHostDocument:
 
     def __str__(self):
         return str(self.root_section)
+
+
+class Reader:
+
+    _file_path = ''
+
+    """
+    Reader constructor
+    
+    :param str path: The virtualhost conf file path
+    """
+    def __init__(self, path):
+        self._file_path = path
+
+    """
+    Parse section string and return Section object
+    
+    :param str line:
+    :return Section:
+    """
+    def _get_section(self, line):
+        regex = re.compile('<([A-Za-z])( ?.*)>')
+        matches = regex.findall(line)
+        section = None
+
+        if len(matches) > 0:
+            name = matches[0]
+            args = str(matches[1]).lstrip(' ')
+            section = Section(name, args)
+
+        return section
+
+    """
+    Parse string directive and return a Directive object
+    
+    :param str line:
+    :return Directive:
+    """
+    def _get_directive(self, line):
+        regex = re.compile('([A-Za-z])( ?.*)')
+        matches = regex.findall(line)
+        directive = None
+
+        if len(matches) > 0:
+            name = matches[0]
+            value = matches[1]
+            directive = Directive(name, value)
+
+        return directive
+
+    """
+    Gets the file content
+    
+    :return list:
+    """
+    def _get_file_content(self):
+        content = []
+
+        if os.path.exists(self._file_path) and os.path.isfile(self._file_path):
+            with open(self._file_path, 'r') as file:
+                for i, line in enumerate(file):
+                    content.append(line)
+
+        return content
+
+    """
+    Read the virtualhost conf file and return VirtualHostDocument object
+    
+    :return VirtualHostDocument:
+    """
+    def read(self):
+        file_lines = self._get_file_content()
+
+        for line in file_lines:
+            pass
