@@ -155,3 +155,162 @@ class VirtualHostWritter:
 
         for i,value in content:
             pass
+
+
+class VirtualHostElement:
+
+    def __str__(self):
+        raise NotImplementedError
+
+
+class Directive(VirtualHostElement):
+    name = ''
+    value = None
+
+    """
+    :param str name: The directive name
+    :param str value: The directive value
+    """
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __str__(self):
+        return "{} {}".format(self.name, self.value)
+
+
+class Section(VirtualHostElement):
+    _section_start = '<{name}{args}>'
+    _section_end = '</{name}>'
+    _directives = []
+    _child_sections = []
+    name = ''
+    args = ''
+
+    """
+    Section constructor
+    
+    :param str name: The section name
+    :param str args: Section args
+    """
+    def __init__(self, name, args=""):
+        self.name = name
+        self.args = args
+
+    """
+    Add a directive
+    
+    :param Directive directive:
+    """
+    def add_directive(self, directive):
+        self._directives.append(directive)
+
+    """
+    Remove directive
+    
+    :param str name: The name of directive
+    """
+    def remove_directive(self, name):
+        for i, directive in self._directives:
+            if directive.name == name:
+                self._directives.pop(i)
+
+    """
+    Update directive in this section
+    
+    :param Directive directive:
+    """
+    def set_directive(self, directive):
+        for i, _directive in self._directives:
+            if _directive.name == directive.name:
+                self._directives[i] = directive
+
+    """
+    Get directive by name
+    
+    :param str name: The name of directive
+    :return Directive:
+    """
+    def get_directive(self, name):
+        for directive in self._directives:
+            if directive.name == name:
+                return directive
+
+        return None
+
+    """
+    Add child section
+    
+    :param Section section:
+    """
+    def add_child_section(self, section):
+        self._child_sections.append(section)
+
+    """
+    Remove child section
+    
+    :param str name: The section name
+    """
+    def remove_child_section(self, name):
+        for i, section in self._child_sections:
+            if section.name == name:
+                self._child_sections.pop(i)
+
+    """
+    Get child section
+    
+    :param str name:
+    """
+    def get_child_section(self, name):
+        for section in self._child_sections:
+            if section.name == name:
+                return section
+
+        return None
+
+    """
+    Update section
+    
+    :param Section section:
+    """
+    def set_child_section(self, section):
+        for i, _section in self._child_sections:
+            if _section.name == section.name:
+                self._child_sections[i] = section
+
+    def __str__(self):
+        section_args = ''
+        directives = ''
+
+        if self.args != '':
+            section_args = " {}".format(self.args)
+
+        start = self._section_start.format(name=self.name, args=section_args) + "\n"
+        end = self._section_end.format(name=self.name) + "\n"
+
+        for directive in self._directives:
+            directives += "\t{}\n".format(str(directive))
+
+        section_str = start + directives
+
+        if len(self._child_sections) > 0:
+            for child_section in self._child_sections:
+                section_str += "\t" + str(child_section)
+
+        section_str += end
+
+        return section_str
+
+
+class VirtualHostDocument:
+
+    root_section = None
+
+    """
+    :param Section root_section:
+    """
+    def __init__(self, root_section):
+        self.root_section = root_section
+
+    def __str__(self):
+        return str(self.root_section)
