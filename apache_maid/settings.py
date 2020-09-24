@@ -16,7 +16,7 @@ class Settings:
     def load(self):
         try:
             with open(self._settings_full_path, 'r') as file:
-                self._settings = yaml.load(file)
+                self._settings = yaml.load(file, Loader=yaml.SafeLoader)
         except yaml.YAMLError as e:
             print(e)
 
